@@ -2,58 +2,45 @@ import numpy as np
 from core.solvers import thomas_solver
 
 def bsa_pde_solver(S_max, K, T, r, sigma, S_grid, T_grid, barrier=None):
-    """
-    Risolve la PDE di Black-Scholes per un'opzione (Call) con eventuale barriera.Implementa C-N
-
-    """
     dt = T / T_grid
-    ds = S_max / S_grid
-    s_values = np.linspace(0, S_max, S_grid + 1)
     
-    # Condizione finale (Payoff Call: max(S-K, 0))
+    # TRUCCO TECNICO: Allineamento della griglia
+    # Facciamo in modo che ds sia tale che K sia un multiplo esatto di ds
+    # Questo ripristina la convergenza del secondo ordine O(dt^2, ds^2)
+    nodes_to_strike = int(S_grid * (K / S_max))
+    ds = K / nodes_to_strike
+    s_values = np.arange(0, S_grid + 1) * ds
+    # Aggiorniamo S_max effettivo per coerenza
+    S_max_eff = s_values[-1] 
+
     v = np.maximum(s_values - K, 0)
-    
-    # Applica barriera se presente (Down-and-Out)
     if barrier:
         v[s_values <= barrier] = 0
 
-    # Coefficienti della matrice
-    def get_coeffs(j):
-        alpha = 0.25 * dt * (sigma**2 * j**2 - r * j)
-        beta = -0.5 * dt * (sigma**2 * j**2 + r)
-        gamma = 0.25 * dt * (sigma**2 * j**2 + r * j)
-        return alpha, beta, gamma
-
-    # Prepariamo le matrici per Crank-Nicolson
-    # A * V_nuovo = B * V_vecchio
     indices = np.arange(1, S_grid)
-    alpha, beta, gamma = get_coeffs(indices)
+    # Calcolo coefficienti (Crank-Nicolson)
+    alpha = 0.25 * dt * (sigma**2 * indices**2 - r * indices)
+    beta = -0.5 * dt * (sigma**2 * indices**2 + r)
+    gamma = 0.25 * dt * (sigma**2 * indices**2 + r * indices)
     
-    # Matrice A (implicita)
     A_diag = 1 - beta
     A_sub = -alpha[1:]
     A_sup = -gamma[:-1]
     
-    # Matrice B (esplicita)
     B_diag = 1 + beta
     B_sub = alpha[1:]
     B_sup = gamma[:-1]
 
-    # Time Stepping
     for t in range(T_grid):
-        # Calcolo termine noto (B * V_vecchio)
         d = B_diag * v[1:-1]
         d[1:] += B_sub * v[1:-2]
         d[:-1] += B_sup * v[2:-1]
         
-        # Condizioni al contorno (Dirichlet)
-        # S=0 -> V=0; S=S_max -> V = S_max - K*exp(-r*t)
-        d[-1] += gamma[-1] * (S_max - K * np.exp(-r * (t * dt)))
+        # Condizione al contorno a destra
+        d[-1] += gamma[-1] * (S_max_eff - K * np.exp(-r * (t * dt)))
 
-        # Risoluzione sistema tridiagonale
         v[1:-1] = thomas_solver(A_sub, A_diag, A_sup, d)
         
-        # Riapplica barriera ad ogni step temporale
         if barrier:
             v[s_values <= barrier] = 0
             

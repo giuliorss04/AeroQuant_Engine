@@ -1,0 +1,51 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+from models.black_scholes_pde import bsa_pde_solver
+
+def black_scholes_exact(S, K, T, r, sigma):
+    """Soluzione analitica esatta di Black-Scholes per una Call."""
+    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+    return S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
+
+def run_convergence_study():
+    # Parametri fissi
+    S0, K, T, r, sigma = 100, 100, 1, 0.05, 0.2
+    S_max = 300
+    
+    # Griglie crescenti (potenze di 2)
+    grids = [20, 40, 80, 160, 320, 640]
+    errors = []
+    
+    exact_price = black_scholes_exact(S0, K, T, r, sigma)
+    print(f"Prezzo Esatto (Analitico): {exact_price:.6f}")
+
+    for N in grids:
+        # Risolviamo con la nostra PDE (senza barriera per il confronto con BS)
+        s_vals, prices = bsa_pde_solver(S_max, K, T, r, sigma, S_grid=N, T_grid=N*2)
+        
+        # Troviamo il prezzo corrispondente a S0=100
+        idx = np.abs(s_vals - S0).argmin()
+        pde_price = prices[idx]
+        
+        err = np.abs(pde_price - exact_price)
+        errors.append(err)
+        print(f"Griglia {N}x{N*2} | Errore: {err:.6f}")
+
+    # Plot Log-Log
+    plt.figure(figsize=(8, 6))
+    plt.loglog(grids, errors, 'o-', label='Errore PDE (Crank-Nicolson)')
+    
+    # Linea di riferimento O(N^-2) - pendenza -2
+    plt.loglog(grids, [errors[0]*(grids[0]/n)**2 for n in grids], '--', label='Pendenza Teorica -2')
+    
+    plt.title("Analisi di Convergenza: CFD in Finanza")
+    plt.xlabel("Numero di Nodi (N)")
+    plt.ylabel("Errore Assoluto")
+    plt.legend()
+    plt.grid(True, which="both", ls="-", alpha=0.5)
+    plt.show()
+
+if __name__ == "__main__":
+    run_convergence_study()
