@@ -24,4 +24,4 @@ $$d\nu_t = \kappa(\theta - \nu_t)dt + \sigma_{\nu} \sqrt{\nu_t} dW_t^2$$
 3. Run convergence tests: `python -m tests.convergence_test`
 
 ---
-*Developed by Giulio Rossi - Engineering Portfolio*
+*Developed by Giulio Rossi*
