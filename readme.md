@@ -41,7 +41,7 @@ The project includes a Streamlit web application to visualize the option's price
 ---
 
 ## Scientific Validation & Convergence
-The engine has been tested against the analytical Black-Scholes solution. Log-log error analysis confirms a second-order convergence rate $O(\Delta x^2)$, demonstrating the mathematical consistency of the Crank-Nicolson implementation.
+The engine has been tested against the analytical Black-Scholes solution. Log-log error analysis confirms a second-order convergence rate $O(\Delta x^2, \Delta t^2)$, demonstrating the mathematical consistency of the Crank-Nicolson implementation.
 ### Convergence Analysis Results
 ![Convergence Plot](tests/convergence_plot.png)
 
@@ -52,11 +52,17 @@ The calibration module fetches live S&P 500 data to compute the **Volatility Ris
 - **Implied Volatility (IV):** Derived from the PDE model calibrated on market prices.
 - **Realized Volatility (RV):** Computed from historical returns to provide a benchmark for "fair" pricing.
 
+### Calibration Case Study: S&P 500 (^SPX)
+![Market Calibration](calibrate_output.png)
+
 ---
 
 ## Research & Development
 The repository includes a research/ directory for experimental models and benchmarking:
 - **Heston Stochastic Volatility (Monte Carlo)**: A framework to account for the "volatility smile" and leverage effects, which constant-volatility PDE models cannot capture.
+
+![Heston Simulated Paths](research/heston_paths.png)
+
 - **Hybrid Numerical Scheme**: To evolve the variance process, the engine utilizes a Runge-Kutta 4 (RK4) integration for the deterministic mean-reversion drift, combined with a Milstein scheme for the stochastic diffusion.
 - **Variance Reduction**: Implements Antithetic Variates to significantly reduce the standard error of the Monte Carlo estimates, ensuring faster convergence.
 - **Leverage Effect**: Simulates the correlation (ρ) between asset returns and volatility, providing a more realistic representation of market dynamics

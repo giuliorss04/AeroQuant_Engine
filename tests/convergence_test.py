@@ -45,7 +45,6 @@ def run_convergence_study():
     plt.ylabel("Absolute Error")
     plt.legend()
     plt.grid(True, which="both", ls="-", alpha=0.5)
-    plt.savefig('tests/convergence_plot.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 if __name__ == "__main__":

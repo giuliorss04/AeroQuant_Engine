@@ -52,18 +52,39 @@ def heston_mc_simulation(S0, K, T, r, kappa, theta, sigma, rho, v0, steps, n_pat
 
     return S, v
 
-def plot_spaghetti(S, n_to_plot=10):
+def plot_spaghetti(S, n_to_plot=50):
     """Crea lo 'Spaghetti Plot'"""
     plt.figure(figsize=(10, 6))
     plt.plot(S[:, :n_to_plot])
-    plt.title(f"Heston Model: Prime {n_to_plot} traiettorie (Spaghetti Plot)")
+    plt.title(f"Heston Model: First {n_to_plot} Simulated Paths (Spaghetti Plot)")
     plt.xlabel("Time Steps")
     plt.ylabel("Asset Price S(t)")
     plt.grid(True, alpha=0.3)
     plt.show()
 
+def check_mc_convergence():
+        n_list = [100, 500, 1000, 5000, 10000, 50000, 100000]
+        prices = []
+    
+        print("\nTest di Convergenza Monte Carlo:")
+        for n in n_list:
+            S_paths, _ = heston_mc_simulation(100, 100, 1, 0.03, 2.0, 0.04, 0.3, -0.7, 0.04, 252, n)
+            payoffs = np.maximum(S_paths[-1] - 100, 0)
+            p = np.exp(-0.03 * 1) * np.mean(payoffs)
+            prices.append(p)
+            print(f"Percorsi: {n*2:<6} | Prezzo Stimato: {p:.4f}")
+
+        plt.figure()
+        plt.plot(n_list, prices, 'o-')
+        plt.axhline(y=prices[-1], color='r', linestyle='--')
+        plt.xlabel("Numero di percorsi")
+        plt.ylabel("Prezzo Opzione")
+        plt.title("Convergenza del metodo Monte Carlo (Heston)")
+        plt.show()
+
+
 if __name__ == "__main__":
-    # Parametri di test (Tipici per l'S&P 500), magari poi collego e uso yfinance per avere dati in tempo reale
+    # Parametri di test (Tipici per l'S&P 500)
     S0, K, T, r = 100, 100, 1, 0.03
     kappa, theta, sigma, rho, v0 = 2.0, 0.04, 0.3, -0.7, 0.04
     
@@ -73,5 +94,7 @@ if __name__ == "__main__":
     payoffs = np.maximum(S_paths[-1] - K, 0)
     option_price = np.exp(-r * T) * np.mean(payoffs)
     
-    print(f"Prezzo Opzione Heston (Monte Carlo): {option_price:.4f}")
+    # print(f"Prezzo Opzione Heston (Monte Carlo): {option_price:.4f}")
     plot_spaghetti(S_paths)
+    check_mc_convergence()
+    

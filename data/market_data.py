@@ -1,13 +1,13 @@
 import yfinance as yf
 import pandas as pd
-import numpy as np  # Spostato qui
+import numpy as np
 from datetime import datetime, timedelta
 
 def get_spx_data():
     """Recupera dati spot, chain opzioni e volatilità storica per S&P 500."""
     spx = yf.Ticker("^SPX")
     
-    # 1. Selezione Scadenza (Target: ~30 giorni per stabilità)
+    # 1. Selezione Scadenza (Target: ~20 giorni per stabilità)
     today = datetime.now()
     available = spx.options
     best_expiry = available[0]

@@ -4,7 +4,7 @@ from data.market_data import get_spx_data
 
 def find_implied_vol(market_price, S0, K, T, r):
     sigma = 0.25 
-    S_max_local = max(S0 * 1.7, K * 1.3) # L'ho allargato per sicurezza, l'errore scende
+    S_max_local = max(S0 * 1.7, K * 1.3) #occhio ai moltiplicatori
     
     for i in range(25):
         s_vals, prices, _, _ = bsa_pde_solver(S_max_local, K, T, r, sigma, 250, 500)
