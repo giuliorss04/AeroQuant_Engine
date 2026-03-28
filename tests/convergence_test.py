@@ -19,11 +19,11 @@ def run_convergence_study():
     errors = []
     
     exact_price = black_scholes_exact(S0, K, T, r, sigma)
-    print(f"Prezzo Esatto (Analitico): {exact_price:.6f}")
+    print(f"Exact Price (Analytical): {exact_price:.6f}")
 
     for N in grids:
         # Risolviamo con la nostra PDE (senza barriera per il confronto con BS)
-        s_vals, prices = bsa_pde_solver(S_max, K, T, r, sigma, S_grid=N, T_grid=N*2)
+        s_vals, prices, _, _ = bsa_pde_solver(S_max, K, T, r, sigma, S_grid=N, T_grid=N*2)
         
         # Troviamo il prezzo corrispondente a S0=100
         idx = np.abs(s_vals - S0).argmin()
@@ -31,20 +31,21 @@ def run_convergence_study():
         
         err = np.abs(pde_price - exact_price)
         errors.append(err)
-        print(f"Griglia {N}x{N*2} | Errore: {err:.6f}")
+        print(f"Grid {N}x{N*2} | Error: {err:.6f}")
 
     # Plot Log-Log
     plt.figure(figsize=(8, 6))
-    plt.loglog(grids, errors, 'o-', label='Errore PDE (Crank-Nicolson)')
+    plt.loglog(grids, errors, 'o-', label='PDE Error (Crank-Nicolson)')
     
     # Linea di riferimento O(N^-2) - pendenza -2
-    plt.loglog(grids, [errors[0]*(grids[0]/n)**2 for n in grids], '--', label='Pendenza Teorica -2')
+    plt.loglog(grids, [errors[0]*(grids[0]/n)**2 for n in grids], '--', label='Theoretical Slope -2')
     
-    plt.title("Analisi di Convergenza: CFD in Finanza")
-    plt.xlabel("Numero di Nodi (N)")
-    plt.ylabel("Errore Assoluto")
+    plt.title("Convergence Analysis")
+    plt.xlabel("Number of Grid Points (N)")
+    plt.ylabel("Absolute Error")
     plt.legend()
     plt.grid(True, which="both", ls="-", alpha=0.5)
+    plt.savefig('tests/convergence_plot.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 if __name__ == "__main__":

@@ -1,50 +1,83 @@
 import numpy as np
 from core.solvers import thomas_solver
 
-def bsa_pde_solver(S_max, K, T, r, sigma, S_grid, T_grid, barrier=None):
+def bsa_pde_solver(S_max_user, K, T, r, sigma, S_grid, T_grid, barrier=None):
     dt = T / T_grid
     s_min = float(barrier) if barrier else 0.0
 
-    # 1. Allineamento della griglia (Ordine 2)
-    nodes_to_k = int(S_grid * (K - s_min) / (S_max - s_min))
-    nodes_to_k = max(1, nodes_to_k)
-    ds = (K - s_min) / nodes_to_k
-    s_values = s_min + np.arange(0, S_grid + 1) * ds
-    S_max_eff = s_values[-1]
+    # 1. S_max Dinamico (Protezione contro alta volatilità/tempo)
+    # Calcolo S_max basato sulla deviazione standard log-normale
+    s_max_auto = K * np.exp(3.5 * sigma * np.sqrt(T))
+    S_max = max(S_max_user, s_max_auto)
 
-    # 2. Inizializzazione Payoff
+    # Allineamento dinamico allo strike
+    # Se K è sopra la barriera, allineo il nodo allo strike
+    # Se K <= barriera, uso una suddivisione uniforme della griglia
+    if K > s_min:
+        nodes_to_k = int(S_grid * (K - s_min) / (S_max - s_min))
+        nodes_to_k = max(1, nodes_to_k)
+        ds = (K - s_min) / nodes_to_k
+    else:
+        # Se lo strike è alla barriera o sotto, ds non può essere calcolato su (K-s_min)
+        ds = (S_max - s_min) / S_grid
+
+    s_values = s_min + np.arange(0, S_grid + 1) * ds
+    # Inizializzo matrice per superficie 3D (Tempo x Spazio) nel caso in cui la volessi imlementare in futuro
+    v_history = np.zeros((T_grid + 1, S_grid + 1))
+    
+    # 2. Inizializzo Payoff
     v = np.maximum(s_values - K, 0)
     
-    # 3. Coefficienti Crank-Nicolson
-    s_over_ds = s_values[1:-1] / ds
+    if barrier is not None:
+        v[0] = 0
+    v_history[0] = v.copy() # Stato iniziale 
+    
+    # 3. Coefficienti
+    s_internal = s_values[1:-1]
+    s_over_ds = s_internal / ds
     alpha = 0.25 * dt * (sigma**2 * s_over_ds**2 - r * s_over_ds)
     beta = -0.5 * dt * (sigma**2 * s_over_ds**2 + r)
     gamma = 0.25 * dt * (sigma**2 * s_over_ds**2 + r * s_over_ds)
     
-    A_diag, A_sub, A_sup = 1 - beta, -alpha[1:], -gamma[:-1]
-    B_diag, B_sub, B_sup = 1 + beta, alpha[1:], gamma[:-1]
+    # Matrici base
+    A_diag, A_sub, A_sup = (1 - beta).copy(), -alpha[1:].copy(), -gamma[:-1].copy()
+    B_diag, B_sub, B_sup = (1 + beta).copy(), alpha[1:].copy(), gamma[:-1].copy()
 
-    # --- 4. RANNACHER STEPPING (Primi 2 sotto-step di Eulero Implicito) ---
-    # Sostituiamo il primo step di CN con due step di IE da dt/2
+    # MODIFICA LINEARITÀ AL BORDO DESTRO (d2V/dS2 = 0)
+    # Sostituisco V[N] = 2*V[N-1] - V[N-2] nelle equazioni dell'ultimo nodo interno
+    A_diag[-1] -= 2 * gamma[-1]
+    A_sub[-1]  += gamma[-1]
+    
+    B_diag[-1] += 2 * gamma[-1]
+    B_sub[-1]  -= gamma[-1]
+
+    # 4. Rannacher Stepping (Eulero Implicito per stabilità iniziale)
+    # Nota: Uso la matrice A modificata, ma senza il termine B
     for step in range(2):
-        t_ie = (step + 1) * (dt / 2)
-        # Per Eulero Implicito (dt/2), il RHS è semplicemente il valore precedente v
         d_ie = v[1:-1].copy()
-        # Condizione al contorno (usiamo 2*gamma perché IE dt/2 richiede il doppio del peso di CN)
-        boundary_val = S_max_eff - K * np.exp(-r * t_ie)
-        d_ie[-1] += 2 * gamma[-1] * boundary_val
-        
         v[1:-1] = thomas_solver(A_sub, A_diag, A_sup, d_ie)
+        if barrier is not None: v[0] = 0
+        # Aggiorno il nodo fantasma esterno per coerenza
+        v[-1] = 2 * v[-2] - v[-3]
 
-    # --- 5. CICLO CRANK-NICOLSON (I restanti T_grid - 1 step) ---
+        v_history[step + 1] = v.copy()
+    
+
+    # 5. Crank-Nicolson
     for t in range(1, T_grid):
+        # RHS (lato esplicito)
         d = B_diag * v[1:-1]
         d[1:] += B_sub * v[1:-2]
         d[:-1] += B_sup * v[2:-1]
         
-        t_mid = (t + 0.5) * dt
-        d[-1] += gamma[-1] * (S_max_eff - K * np.exp(-r * t_mid))
-
+        
+        # Solver (lato implicito)
         v[1:-1] = thomas_solver(A_sub, A_diag, A_sup, d)
         
-    return s_values, v
+        if barrier is not None: v[0] = 0 
+        
+        # Aggiorno il valore al bordo destro per il prossimo step
+        v[-1] = 2 * v[-2] - v[-3]
+        v_history[t + 1] = v.copy() # Salvo per ogni step temporale
+        
+    return s_values, v, v_history, dt

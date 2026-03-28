@@ -19,7 +19,6 @@ def thomas_solver(a, b, c, d):
         c_star[i] = c[i] / denom
         d_star[i] = (d[i] - a[i-1] * d_star[i-1]) / denom
     
-    # --- RIGA CORRETTA QUI SOTTO (n-2 invece di n-1 per c_star) ---
     d_star[n-1] = (d[n-1] - a[n-2] * d_star[n-2]) / (b[n-1] - a[n-2] * c_star[n-2])
 
     # Back substitution

@@ -8,8 +8,8 @@ def heston_mc_simulation(S0, K, T, r, kappa, theta, sigma, rho, v0, steps, n_pat
     """
     dt = T / steps
     
-    # Inizializzazione matrici (n_paths * 2 perché usiamo Antithetic Variates)
-    # Generiamo percorsi speculari per convergere più velocemente
+    # Inizializzazione matrici (n_paths * 2 perché uso Antithetic Variates)
+    # Genero percorsi speculari per convergere più velocemente
     total_paths = n_paths * 2
     S = np.zeros((steps + 1, total_paths))
     v = np.zeros((steps + 1, total_paths))
@@ -23,7 +23,7 @@ def heston_mc_simulation(S0, K, T, r, kappa, theta, sigma, rho, v0, steps, n_pat
         z1 = np.random.normal(0, 1, n_paths)
         z2 = np.random.normal(0, 1, n_paths)
         
-        # Antithetic Variates: creiamo gli shock opposti
+        # Antithetic Variates: creo gli shock opposti
         z1 = np.concatenate([z1, -z1])
         z2 = np.concatenate([z2, -z2])
         
@@ -43,7 +43,7 @@ def heston_mc_simulation(S0, K, T, r, kappa, theta, sigma, rho, v0, steps, n_pat
         v_deterministic = (dt / 6.0) * (k1 + 2*k2 + 2*k3 + k4)
 
         # 2. Aggiornamento Varianza (Milstein per la parte stocastica)
-        # Usiamo np.maximum(v, 0) per evitare che la varianza diventi negativa (problema comune)
+        # Usiamo np.maximum(v, 0) per evitare che la varianza diventi negativa
         v[t] = v[t-1] + v_deterministic + sigma * np.sqrt(np.maximum(v[t-1], 0)) * dW2 + 0.25 * sigma**2 * (dW2**2 - dt)
         v[t] = np.maximum(v[t], 0.0001) # Floor di sicurezza
 
@@ -53,7 +53,7 @@ def heston_mc_simulation(S0, K, T, r, kappa, theta, sigma, rho, v0, steps, n_pat
     return S, v
 
 def plot_spaghetti(S, n_to_plot=10):
-    """Crea il famoso 'Spaghetti Plot' per il README."""
+    """Crea lo 'Spaghetti Plot'"""
     plt.figure(figsize=(10, 6))
     plt.plot(S[:, :n_to_plot])
     plt.title(f"Heston Model: Prime {n_to_plot} traiettorie (Spaghetti Plot)")
@@ -63,7 +63,7 @@ def plot_spaghetti(S, n_to_plot=10):
     plt.show()
 
 if __name__ == "__main__":
-    # Parametri di test (Tipici per l'S&P 500)
+    # Parametri di test (Tipici per l'S&P 500), magari poi collego e uso yfinance per avere dati in tempo reale
     S0, K, T, r = 100, 100, 1, 0.03
     kappa, theta, sigma, rho, v0 = 2.0, 0.04, 0.3, -0.7, 0.04
     
