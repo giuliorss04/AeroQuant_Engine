@@ -4,22 +4,51 @@
 AeroQuant is a high-performance numerical engine for pricing vanilla and barrier options. Built on a foundation of Aerospace Engineering numerical principles, the solver utilizes Finite Difference Methods (FDM) to solve the Black-Scholes PDE. Key features include Crank-Nicolson integration with Rannacher stepping to ensure stability and eliminate numerical oscillations, and a dynamic grid alignment for precise strike and barrier handling.
 
 
+### Black-Scholes PDE
+The engine solves the second-order partial differential equation for the option value $V(S, t)$:
+$$\frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S^2 \frac{\partial^2 V}{\partial S^2} + rS \frac{\partial V}{\partial S} - rV = 0$$
+
+### Heston Model (Stochastic Volatility)
+The research module evolves the asset price $S_t$ and its variance $v_t$ using correlated SDEs:
+$$dS_t = r S_t dt + \sqrt{v_t} S_t dW_t^1$$
+$$dv_t = \kappa(\theta - v_t)dt + \sigma_{\nu} \sqrt{v_t} dW_t^2$$
+
+---
+
 ## Key Features
 - **PDE Pricing Engine**: A second-order accurate solver for the Black-Scholes PDE using the Crank-Nicolson scheme.
 - **Numerical Stability**: Implementation of Rannacher Stepping (initial Implicit Euler steps) to suppress spurious oscillations caused by the non-smooth payoff of European and Barrier options.
 - **High-Performance Linear Algebra**: Tridiagonal systems are solved in $O(n)$ time using the Thomas Algorithm, ensuring high-speed execution.
 - **Dynamic Grid Mapping**: Adaptive spatial discretization that aligns nodes exactly with the Strike ($K$) and Barrier ($H$) to minimize interpolation errors.
 - **Market Calibration**: Real-time Implied Volatility (IV) extraction from S&P 500 options data via a clamped Newton-Raphson optimizer.
-- **Stochastic Benchmarking**: A Heston Model implementation (Monte Carlo) to explore stochastic volatility effects, integrated with RK4 for the variance process.
 
-- **Scientific Validation & Convergence**
-The engine has been tested against the analytical Black-Scholes solution. Log-log error analysis confirms a second-order convergence rate ($O(\Delta x^2, \Delta t^2)$), demonstrating the mathematical consistency of the Crank-Nicolson implementation.
+---
 
-- **Interactive Dashboard**
-The project includes a Streamlit web application to visualize the option's price surface, Greeks (Delta, Gamma, Theta), and the impact of barriers in real-time.
+## Interactive Dashboard
+The project includes a Streamlit web application to visualize the option's price, Greeks (Delta, Gamma, Theta), and the impact of barriers in real-time.
 
+![Dashboard Preview](image_9c94bb.png) *(Carica il tuo screenshot nel repo e punta qui il link)*
 
+**Capabilities:**
+- **Dynamic Profiling**: Real-time overlay of the PDE solution vs Payoff at maturity.
+- **Live Risk Metrics**: Instant calculation of **Delta (Δ), Gamma (Γ), and Theta (Θ)** directly from the numerical grid.
+- **Barrier Simulation**: Toggle Down-and-Out barriers to observe the immediate impact on option value and Greeks.
 
+---
+
+## Scientific Validation & Convergence
+The engine has been tested against the analytical Black-Scholes solution. Log-log error analysis confirms a second-order convergence rate ($O(\Delta x^2)$), demonstrating the mathematical consistency of the Crank-Nicolson implementation.
+### Convergence Analysis Results
+![Convergence Plot](tests/convergence_plot.png)
+
+---
+
+## Market Intelligence
+The calibration module fetches live S&P 500 data to compute the **Volatility Risk Premium**, and validate the model:
+- **Implied Volatility (IV):** Derived from the PDE model calibrated on market prices.
+- **Realized Volatility (RV):** Computed from historical returns to provide a benchmark for "fair" pricing.
+
+---
 
 ## Research & Development
 The repository includes a research/ directory for experimental models and benchmarking:
@@ -30,29 +59,9 @@ The repository includes a research/ directory for experimental models and benchm
 
 Note: The Heston engine is currently used as a stochastic benchmark for the PDE solver and is undergoing integration into the main AeroQuant engine.
 
+---
 
-
-## Mathematical Core
-
-### Black-Scholes PDE
-The engine solves the second-order partial differential equation for the option value $V(S, t)$:
-
-$$\frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S^2 \frac{\partial^2 V}{\partial S^2} + rS \frac{\partial V}{\partial S} - rV = 0$$
-
-### Heston Model (Stochastic Volatility)
-In the research module, we evolve the asset price $S_t$ and its variance $v_t$ using the following SDEs:
-
-$$dS_t = r S_t dt + \sqrt{v_t} S_t dW_t^1$$
-$$dv_t = \kappa(\theta - v_t)dt + \sigma_{\nu} \sqrt{v_t} dW_t^2$$
-
-*Where $dW_t^1$ and $dW_t^2$ have correlation $\rho$.*
-
-## 📊 Market Intelligence
-The calibration module fetches live S&P 500 data to compute the **Volatility Risk Premium (VRP)**:
-- **Implied Volatility (IV):** Derived from the PDE model calibrated on market prices.
-- **Realized Volatility (RV):** Computed from historical returns to provide a benchmark for "fair" pricing.
-
-## 🛠️ Installation & Usage
+## Installation & Usage
 1. **Clone the repo**: `git clone https://github.com/tuo-username/AeroQuant.git`
 2. **Install dependencies**: `pip install -r requirements.txt`
 3. **Launch the Dashboard**: `streamlit run app.py`
