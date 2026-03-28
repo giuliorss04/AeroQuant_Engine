@@ -67,11 +67,42 @@ The repository includes a research/ directory for experimental models and benchm
 - **Variance Reduction**: Implements Antithetic Variates to significantly reduce the standard error of the Monte Carlo estimates, ensuring faster convergence.
 - **Leverage Effect**: Simulates the correlation (ρ) between asset returns and volatility, providing a more realistic representation of market dynamics
 
-Note: The Heston engine is currently used as a stochastic benchmark for the PDE solver and is undergoing integration into the main AeroQuant engine.
+Note: The Heston module serves as a stochastic research framework. While the PDE engine is calibrated on live market data, the Heston engine allows for "What-if" analysis of stochastic volatility regimes and leverage effects ($\rho$) that exceed the constant-volatility assumptions of the standard Black-Scholes model.
 
 ---
 
 ## Installation & Usage
-1. **Clone the repo**: `git clone https://github.com/tuo-username/AeroQuant.git`
+1. **Clone the repo**: `git clone https://github.com/giuliorss04/AeroQuant_Engine.git`
 2. **Install dependencies**: `pip install -r requirements.txt`
 3. **Launch the Dashboard**: `streamlit run app.py`
+
+
+### 1. Clone and Setup
+```bash
+# Clone the repository
+git clone [https://github.com/giuliorss04/AeroQuant_Engine.git]
+cd AeroQuant_Engine
+
+## 🛠 Installation & Usage
+
+To run the AeroQuant Engine locally, follow these steps:
+
+```bash
+# 1. Clone the repository and enter the directory
+git clone [https://github.com/giuliorss04/AeroQuant_Engine.git](https://github.com/giuliorss04/AeroQuant_Engine.git)
+cd AeroQuant_Engine
+
+# 2. Set up a virtual environment and install dependencies
+python -m venv venv
+# Activate on Windows: .\venv\Scripts\activate | On macOS/Linux: source venv/bin/activate
+pip install -r requirements.txt
+
+# 3. Execution Commands
+# Launch the Interactive Dashboard
+streamlit run app.py
+
+# Run Live Market Calibration (S&P 500)
+python -m scripts.calibrate
+
+# Run Heston Model Research & Convergence Test
+python -m research.heston_benchmark
