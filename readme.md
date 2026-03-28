@@ -72,12 +72,6 @@ Note: The Heston module serves as a stochastic research framework. While the PDE
 ---
 
 ## Installation & Usage
-1. **Clone the repo**: `git clone https://github.com/giuliorss04/AeroQuant_Engine.git`
-2. **Install dependencies**: `pip install -r requirements.txt`
-3. **Launch the Dashboard**: `streamlit run app.py`
-
-
-### 1. Clone and Setup
 ```bash
 # Clone the repository
 git clone [https://github.com/giuliorss04/AeroQuant_Engine.git]
@@ -87,7 +81,6 @@ cd AeroQuant_Engine
 
 To run the AeroQuant Engine locally, follow these steps:
 
-```bash
 # 1. Clone the repository and enter the directory
 git clone [https://github.com/giuliorss04/AeroQuant_Engine.git](https://github.com/giuliorss04/AeroQuant_Engine.git)
 cd AeroQuant_Engine
