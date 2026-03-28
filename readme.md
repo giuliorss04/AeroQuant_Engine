@@ -1,6 +1,10 @@
 # AeroQuant Engine
 **High-Performance Quantitative Framework for Option Pricing & Market Calibration**
 
+> **[LIVE INTERACTIVE DEMO HERE](https://aeroquantengine-tjqsxmmnpcsff2dcp8teud.streamlit.app/)**
+
+![Dashboard Preview](dashboard_preview.png)
+
 AeroQuant is a high-performance numerical engine for pricing vanilla and barrier options. Built on a foundation of Aerospace Engineering numerical principles, the solver utilizes Finite Difference Methods (FDM) to solve the Black-Scholes PDE. Key features include Crank-Nicolson integration with Rannacher stepping to ensure stability and eliminate numerical oscillations, and a dynamic grid alignment for precise strike and barrier handling.
 
 
@@ -26,8 +30,6 @@ $$dv_t = \kappa(\theta - v_t)dt + \sigma_{\nu} \sqrt{v_t} dW_t^2$$
 
 ## Interactive Dashboard
 The project includes a Streamlit web application to visualize the option's price, Greeks (Delta, Gamma, Theta), and the impact of barriers in real-time.
-
-![Dashboard Preview](image_9c94bb.png) *(Carica il tuo screenshot nel repo e punta qui il link)*
 
 **Capabilities:**
 - **Dynamic Profiling**: Real-time overlay of the PDE solution vs Payoff at maturity.
