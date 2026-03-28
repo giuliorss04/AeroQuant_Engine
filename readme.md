@@ -10,10 +10,12 @@ AeroQuant is a high-performance numerical engine for pricing vanilla and barrier
 
 ### Black-Scholes PDE
 The engine solves the second-order partial differential equation for the option value $V(S, t)$:
+
 $$\frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S^2 \frac{\partial^2 V}{\partial S^2} + rS \frac{\partial V}{\partial S} - rV = 0$$
 
 ### Heston Model (Stochastic Volatility)
 The research module evolves the asset price $S_t$ and its variance $v_t$ using correlated SDEs:
+
 $$dS_t = r S_t dt + \sqrt{v_t} S_t dW_t^1$$
 $$dv_t = \kappa(\theta - v_t)dt + \sigma_{\nu} \sqrt{v_t} dW_t^2$$
 
@@ -39,7 +41,7 @@ The project includes a Streamlit web application to visualize the option's price
 ---
 
 ## Scientific Validation & Convergence
-The engine has been tested against the analytical Black-Scholes solution. Log-log error analysis confirms a second-order convergence rate ($O(\Delta x^2)$), demonstrating the mathematical consistency of the Crank-Nicolson implementation.
+The engine has been tested against the analytical Black-Scholes solution. Log-log error analysis confirms a second-order convergence rate $O(\Delta x^2)$, demonstrating the mathematical consistency of the Crank-Nicolson implementation.
 ### Convergence Analysis Results
 ![Convergence Plot](tests/convergence_plot.png)
 
