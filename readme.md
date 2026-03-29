@@ -75,12 +75,12 @@ Note: The Heston module serves as a stochastic research framework. While the PDE
 To run the AeroQuant Engine locally, follow these steps:
 ```bash
 # 1. Clone the repository and enter the directory
-git clone [https://github.com/giuliorss04/AeroQuant_Engine.git](https://github.com/giuliorss04/AeroQuant_Engine.git)
+git clone [https://github.com/giuliorss04/AeroQuant_Engine.git]
 cd AeroQuant_Engine
 
 # 2. Set up a virtual environment and install dependencies
 python -m venv venv
-# Activate on Windows: .\venv\Scripts\activate | On macOS/Linux: source venv/bin/activate
+# Activate on Windows: .\venv\Scripts\Activate.ps1 | On macOS/Linux: source venv/bin/activate
 pip install -r requirements.txt
 
 # 3. Execution Commands
@@ -90,5 +90,8 @@ streamlit run app.py
 # Run Live Market Calibration (S&P 500)
 python -m scripts.calibrate
 
-# Run Heston Model Research & Convergence Test
+# Run PDE Convergence Analysis (Scientific Validation)
+python -m tests.convergence_test
+
+# Run Heston Model Research & Monte Carlo Convergence
 python -m research.heston_benchmark
