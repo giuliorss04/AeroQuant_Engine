@@ -14,7 +14,7 @@ def run_convergence_study():
     S0, K, T, r, sigma = 100, 100, 1, 0.05, 0.2
     S_max = 300
     
-    # Griglie crescenti (potenze di 2)
+    # Griglie crescenti (raddoppio progressivo: 20 × 2^k, k = 0..5)
     grids = [20, 40, 80, 160, 320, 640]
     errors = []
     
@@ -26,12 +26,15 @@ def run_convergence_study():
         s_vals, prices, _, _ = bsa_pde_solver(S_max, K, T, r, sigma, S_grid=N, T_grid=N*2)
         
         # Troviamo il prezzo corrispondente a S0=100
-        idx = np.abs(s_vals - S0).argmin()
-        pde_price = prices[idx]
+        pde_price = np.interp(S0, s_vals, prices)
         
         err = np.abs(pde_price - exact_price)
         errors.append(err)
-        print(f"Grid {N}x{N*2} | Error: {err:.6f}")
+        if len(errors) > 1:
+            rate = np.log(errors[-2] / err) / np.log(N / grids[len(errors) - 2])
+        else:
+            rate = float('nan')
+        print(f"Grid {N:>4}x{N*2:<5} | Error: {err:.2e} | Conv. rate: {rate:.2f}")
 
     # Plot Log-Log
     plt.figure(figsize=(8, 6))

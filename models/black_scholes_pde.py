@@ -53,18 +53,18 @@ def bsa_pde_solver(S_max_user, K, T, r, sigma, S_grid, T_grid, barrier=None):
 
     # 4. Rannacher Stepping (Eulero Implicito per stabilità iniziale)
     # Nota: Uso la matrice A modificata, ma senza il termine B
-    for step in range(2):
-        d_ie = v[1:-1].copy()
-        v[1:-1] = thomas_solver(A_sub, A_diag, A_sup, d_ie)
+    for step in range(2):           # 2 passi Rannacher completi di ampiezza dt
+        for _ in range(2):          # ogni passo = 2 mezzi-step IE di ampiezza dt/2
+            d_ie = v[1:-1].copy()
+            v[1:-1] = thomas_solver(A_sub, A_diag, A_sup, d_ie)
         if barrier is not None: v[0] = 0
         # Aggiorno il nodo fantasma esterno per coerenza
         v[-1] = 2 * v[-2] - v[-3]
-
         v_history[step + 1] = v.copy()
     
 
     # 5. Crank-Nicolson
-    for t in range(1, T_grid):
+    for t in range(3, T_grid + 1):
         # RHS (lato esplicito)
         d = B_diag * v[1:-1]
         d[1:] += B_sub * v[1:-2]
@@ -78,6 +78,6 @@ def bsa_pde_solver(S_max_user, K, T, r, sigma, S_grid, T_grid, barrier=None):
         
         # Aggiorno il valore al bordo destro per il prossimo step
         v[-1] = 2 * v[-2] - v[-3]
-        v_history[t + 1] = v.copy() # Salvo per ogni step temporale
+        v_history[t] = v.copy() # Salvo per ogni step temporale
         
     return s_values, v, v_history, dt
