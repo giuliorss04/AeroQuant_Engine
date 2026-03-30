@@ -97,8 +97,7 @@ The Milstein discretisation achieves strong order 1.0 in $O\Delta t$ for the var
 The asset price is updated via the exact log-Euler scheme to prevent 
 negative prices:
 
-$$S_{t+\Delta t} = S_t \exp\!\left[\left(r - \tfrac{1}{2}v_t\right) 
-\Delta t + \sqrt{v_t}\,\Delta W_t^1\right]$$
+$$S_{t+\Delta t} = S_t \exp\left[\left(r - \frac{1}{2}v_t\right) \Delta t + \sqrt{v_t} \Delta W_t^1\right]$$
 
 **Variance Reduction: Antithetic Variates**  
 For each set of $n$ random draws $(\mathbf{z}_1, \mathbf{z}_2)$, the 
@@ -124,8 +123,8 @@ Grid  640x1280  | Error: 5.45e-04 | Conv. rate: 2.01
 
 ![Convergence Plot](tests/convergence_plot.png)
 
-The measured convergence rate of **2.00** confirms the theoretical 
 $O(\Delta x^2, \Delta t^2)$ accuracy of the Crank-Nicolson + Rannacher 
+The measured convergence rate of **~ 2.00** confirms the theoretical 
 implementation.
 
 ---
