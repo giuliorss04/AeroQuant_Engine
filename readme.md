@@ -123,8 +123,8 @@ Grid  640x1280  | Error: 5.45e-04 | Conv. rate: 2.01
 
 ![Convergence Plot](tests/convergence_plot.png)
 
+The measured convergence rate of **~2.00** confirms the theoretical 
 $O(\Delta x^2, \Delta t^2)$ accuracy of the Crank-Nicolson + Rannacher 
-The measured convergence rate of **~ 2.00** confirms the theoretical 
 implementation.
 
 ---

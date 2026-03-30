@@ -24,8 +24,8 @@ barrier = st.sidebar.slider("Barrier Level ($H$)", 0, 100, 80) if use_barrier el
 if st.button("Run PDE Simulation"):
     with st.spinner("Solving Black-Scholes PDE..."):
         
-        # 1. S_max dinamico (3 volte lo strike) per evitare il Truncation Error
-        S_max_dyn = K * 3 
+        # 1. S_max dinamico per evitare il Truncation Error
+        S_max_dyn = max(K * 3, S0 * 2.5)
         
         # Chiamata al solver (S_grid e T_grid alzati per maggiore precisione, anche v_history e dt per calcolare theta ed eventualmente in futuro sup. 3D)
         s_vals, prices, v_hist, dt = bsa_pde_solver(S_max_dyn, K, T, r, sigma, 500, 1000, barrier=barrier)
@@ -43,7 +43,7 @@ if st.button("Run PDE Simulation"):
             # Gamma: Derivata seconda
             gamma_g = (prices[idx+1] - 2*prices[idx] + prices[idx-1]) / (ds**2)
             # Theta: Differenza tra oggi (t=0) e il passo precedente (t=dt) -> inverto l'ordine per avere il decadimento (negativo)
-            theta = (v_hist[-2, idx] - v_hist[-1, idx]) / dt
+            theta = (v_hist[-2, idx] - v_hist[-1, idx]) / dt / 365
         else:
             delta, gamma_g, theta = 0.0, 0.0, 0.0
 
@@ -67,10 +67,10 @@ if st.button("Run PDE Simulation"):
             m_col1, m_col2, m_col3 = st.columns(3)
             m_col1.metric("Delta (Δ)", f"{delta:.4f}")
             m_col2.metric("Gamma (Γ)", f"{gamma_g:.4f}")
-            m_col3.metric("Theta (Θ)", f"{theta:.4g}")
+            m_col3.metric("Theta (Θ) /day", f"{theta:.4g}")
             
             st.write("---")
-            st.info(f"**Technical Details:**\n- Numerical Domain Upper Bound $S_{{max}}$: {S_max_dyn}\n- Grid aligned at $K$ = {K}")
+            st.info(f"**Technical Details:**\n- Domain upper bound Smax: {S_max_dyn}\n- Grid aligned at strike K = {K}")
             if use_barrier:
                 st.warning(f"Down-and-Out Barrier active at {barrier}")
 st.markdown("---")
