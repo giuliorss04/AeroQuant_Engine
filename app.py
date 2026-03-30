@@ -67,7 +67,7 @@ if st.button("Run PDE Simulation"):
             m_col1, m_col2, m_col3 = st.columns(3)
             m_col1.metric("Delta (Δ)", f"{delta:.4f}")
             m_col2.metric("Gamma (Γ)", f"{gamma_g:.4f}")
-            m_col3.metric("Theta (Θ) /day", f"{theta:.4g}")
+            m_col3.metric("Theta (Θ) /day", f"{theta:.4f}")
             
             st.write("---")
             st.info(f"**Technical Details:**\n- Domain upper bound Smax: {S_max_dyn}\n- Grid aligned at strike K = {K}")
