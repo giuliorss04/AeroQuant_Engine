@@ -13,9 +13,9 @@ Heston model.
 The project originates from a direct methodological parallel: the 
 Black-Scholes PDE is a convection-diffusion equation of the same class 
 routinely solved in computational fluid dynamics and structural mechanics. 
-This background informed the choice of numerical schemes — Crank-Nicolson 
+This background informed the choice of numerical schemes (Crank-Nicolson 
 time integration, Rannacher stepping for non-smooth initial conditions, and 
-Thomas algorithm for tridiagonal linear systems — all standard tools in 
+Thomas algorithm for tridiagonal linear systems) all standard tools in 
 engineering numerics, here applied to derivatives pricing.
 
 ---
@@ -26,9 +26,7 @@ engineering numerics, here applied to derivatives pricing.
 The engine solves the following second-order parabolic PDE for the option 
 value $V(S, t)$, backward in time from maturity $T$ to $t = 0$:
 
-$$\frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S^2 
-\frac{\partial^2 V}{\partial S^2} + rS \frac{\partial V}{\partial S} 
-- rV = 0$$
+$$\frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S^2\frac{\partial^2 V}{\partial S^2} + rS \frac{\partial V}{\partial S} - rV = 0$$
 
 with terminal condition $V(S, T) = \max(S - K, 0)$ for a European call, 
 and Dirichlet boundary condition $V(H, t) = 0$ at the barrier $H$ for 
@@ -65,7 +63,7 @@ $O(\Delta S^2, \Delta t^2)$.
 **Rannacher Stepping**  
 The discontinuity in $\partial V / \partial S$ at $S = K$ at maturity 
 degrades CN accuracy and introduces spurious oscillations. Following 
-Rannacher (1984), the first two time steps are replaced by two 
+Rannacher, the first two time steps are replaced by two 
 fully-implicit (backward Euler) half-steps of size $\Delta t / 2$ each, 
 restoring second-order convergence globally while suppressing oscillations.
 
@@ -92,10 +90,7 @@ deterministic mean-reversion drift $\kappa(\theta - v)$ is integrated with
 a classical Runge-Kutta 4 (RK4) step, while the stochastic diffusion term 
 is handled by the Milstein correction:
 
-$$v_{t+\Delta t} = v_t + \underbrace{\frac{\Delta t}{6}(k_1 + 2k_2 + 2k_3 
-+ k_4)}_{\text{RK4 drift}} + \sigma_v\sqrt{v_t}\,\Delta W_t^2 + 
-\underbrace{\frac{\sigma_v^2}{4}\left[(\Delta W_t^2)^2 - \Delta 
-t\right]}_{\text{Milstein correction}}$$
+$$v_{t+\Delta t} = v_t + \underbrace{\frac{\Delta t}{6}(k_1 + 2k_2 + 2k_3 + k_4)}_{\text{RK4 drift}} + \sigma_v\sqrt{v_t}\,\Delta W_t^2 + \underbrace{\frac{\sigma_v^2}{4}\left[(\Delta W_t^2)^2 - \Delta t\right]}_{\text{Milstein correction}}$$
 
 The Milstein discretisation achieves strong order 1.0 in $O\Delta t$ for the variance process; the RK4 component improves accuracy of the deterministic drift at negligible additional cost without altering the convergence order of the stochastic term.
 
@@ -118,12 +113,13 @@ The PDE solver is benchmarked against the analytical Black-Scholes price.
 Log-log error analysis over grids ranging from $20 \times 40$ to 
 $640 \times 1280$ confirms second-order convergence:
 ```
-Grid   20x40   | Error: 1.23e-03 | Conv. rate:  nan
-Grid   40x80   | Error: 3.08e-04 | Conv. rate: 2.00
-Grid   80x160  | Error: 7.71e-05 | Conv. rate: 2.00
-Grid  160x320  | Error: 1.93e-05 | Conv. rate: 2.00
-Grid  320x640  | Error: 4.82e-06 | Conv. rate: 2.00
-Grid 640x1280  | Error: 1.20e-06 | Conv. rate: 2.00
+Grid   20x40    | Error: 8.26e-01 | Conv. rate: nan
+Grid   40x80    | Error: 1.51e-01 | Conv. rate: 2.45
+Grid   80x160   | Error: 3.68e-02 | Conv. rate: 2.03
+Grid  160x320   | Error: 8.82e-03 | Conv. rate: 2.06
+Grid  320x640   | Error: 2.20e-03 | Conv. rate: 2.00
+Grid  640x1280  | Error: 5.45e-04 | Conv. rate: 2.01
+
 ```
 
 ![Convergence Plot](tests/convergence_plot.png)
@@ -140,9 +136,7 @@ The calibration module (`scripts/calibrate.py`) extracts the implied
 volatility (IV) from live S&P 500 option prices by inverting the PDE pricer 
 via Newton-Raphson iteration with numerical vega:
 
-$$\sigma_{n+1} = \sigma_n - \frac{V_{\text{PDE}}(\sigma_n) - 
-V_{\text{market}}}{\mathcal{V}(\sigma_n)}, \qquad \mathcal{V} \approx 
-\frac{V_{\text{PDE}}(\sigma + 0.01) - V_{\text{PDE}}(\sigma)}{0.01}$$
+$$\sigma_{n+1} = \sigma_n - \frac{V_{\text{PDE}}(\sigma_n) - V_{\text{market}}}{\mathcal{V}(\sigma_n)}, \qquad \mathcal{V}\approx\frac{V_{\text{PDE}}(\sigma + 0.01) - V_{\text{PDE}}(\sigma)}{0.01}$$
 
 The IV is compared against the 30-day realised volatility (RV) computed 
 from historical log-returns to estimate the **Volatility Risk Premium** 
@@ -207,7 +201,7 @@ AeroQuant_Engine/
 ├── tests/
 │   └── convergence_test.py     # Log-log convergence analysis
 ├── research/
-│   └── heston_simulation.py     # Heston MC simulation & convergence
+│   └── heston_simulation.py    # Heston MC simulation & convergence
 ├── app.py                      # Streamlit interactive dashboard
 └── requirements.txt
 ```
@@ -240,18 +234,11 @@ python -m research.heston_simulation        # Heston MC simulation
 
 | Package | Purpose |
 |---|---|
-| `numpy` | Numerical arrays and linear algebra |
-| `scipy` | Normal CDF for analytical benchmark |
+| `numpy`      | Numerical arrays and linear algebra |
+| `scipy`      | Normal CDF for analytical benchmark |
 | `matplotlib` | Convergence and simulation plots |
-| `yfinance` | Live SPX options data |
-| `streamlit` | Interactive web dashboard |
+| `yfinance`   | Live SPX options data |
+| `streamlit`  | Interactive web dashboard |
 | `pandas`     | Data manipulation for market data pipeline        |
 | `plotly`     | Interactive charts in the Streamlit dashboard     |
 | `altair`     | Declarative visualisation layer (pinned `<5` for Streamlit compatibility) |
-
----
-
-*Developed as a portfolio project for the application to the Master in 
-Financial Engineering (MFE) — EPFL. The project applies numerical methods 
-from aerospace engineering (FDM, Runge-Kutta, tridiagonal solvers) to 
-the pricing of financial derivatives.*
