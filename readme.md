@@ -26,7 +26,9 @@ engineering numerics, here applied to derivatives pricing.
 The engine solves the following second-order parabolic PDE for the option 
 value $V(S, t)$, backward in time from maturity $T$ to $t = 0$:
 
-$$\frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S^2\frac{\partial^2 V}{\partial S^2} + rS \frac{\partial V}{\partial S} - rV = 0$$
+$$\frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S^2\frac{\partial^2 V}{\partial S^2} + (r-q)S \frac{\partial V}{\partial S} - rV = 0$$
+
+where $q \geq 0$ is the continuous dividend yield. Setting $q = 0$ recovers the standard Black-Scholes equation. The risk-neutral drift becomes $(r-q)S$ while the discount factor remains $e^{-rT}$, consistent with the no-arbitrage forward price $F = S_0 e^{(r-q)T}$.
 
 with terminal condition $V(S, T) = \max(S - K, 0)$ for a European call, 
 and Dirichlet boundary condition $V(H, t) = 0$ at the barrier $H$ for 

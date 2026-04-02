@@ -1,7 +1,7 @@
 import numpy as np
 from core.solvers import thomas_solver
 
-def bsa_pde_solver(S_max_user, K, T, r, sigma, S_grid, T_grid, barrier=None):
+def bsa_pde_solver(S_max_user, K, T, r, sigma, S_grid, T_grid, barrier=None, q=0.0):
     dt = T / T_grid
     s_min = float(barrier) if barrier else 0.0
 
@@ -35,9 +35,10 @@ def bsa_pde_solver(S_max_user, K, T, r, sigma, S_grid, T_grid, barrier=None):
     # 3. Coefficienti
     s_internal = s_values[1:-1]
     s_over_ds = s_internal / ds
-    alpha = 0.25 * dt * (sigma**2 * s_over_ds**2 - r * s_over_ds)
-    beta = -0.5 * dt * (sigma**2 * s_over_ds**2 + r)
-    gamma = 0.25 * dt * (sigma**2 * s_over_ds**2 + r * s_over_ds)
+    drift = r - q  # drift risk-neutral con dividendi continui
+    alpha = 0.25 * dt * (sigma**2 * s_over_ds**2 - drift * s_over_ds)  # coeff V_{i-1}
+    beta  = -0.5 * dt * (sigma**2 * s_over_ds**2 + r)                  # discount rimane r
+    gamma = 0.25 * dt * (sigma**2 * s_over_ds**2 + drift * s_over_ds)  # coeff V_{i+1}
     
     # Matrici base
     A_diag, A_sub, A_sup = (1 - beta).copy(), -alpha[1:].copy(), -gamma[:-1].copy()
@@ -57,10 +58,13 @@ def bsa_pde_solver(S_max_user, K, T, r, sigma, S_grid, T_grid, barrier=None):
         for _ in range(2):          # ogni passo = 2 mezzi-step IE di ampiezza dt/2
             d_ie = v[1:-1].copy()
             v[1:-1] = thomas_solver(A_sub, A_diag, A_sup, d_ie)
-        if barrier is not None: v[0] = 0
-        # Aggiorno il nodo fantasma esterno per coerenza
-        v[-1] = 2 * v[-2] - v[-3]
+            if barrier is not None:
+                v[0] = 0.0  # Dirichlet BC rinforzata dopo ogni mezzo-passo BE
+            v[-1] = 2.0 * v[-2] - v[-3]  # ghost node aggiornato dopo ogni mezzo-passo
         v_history[step + 1] = v.copy()
+
+
+        
     
 
     # 5. Crank-Nicolson

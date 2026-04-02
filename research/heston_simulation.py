@@ -8,6 +8,17 @@ def heston_mc_simulation(S0, K, T, r, kappa, theta, sigma, rho, v0, steps, n_pat
     """
     dt = T / steps
     
+    # Feller condition: 2κθ > σ_v² garantisce che v_t > 0 quasi certamente
+    feller_lhs = 2.0 * kappa * theta
+    feller_rhs = sigma**2
+    if feller_lhs <= feller_rhs:
+        print(
+            f"WARNING: Feller condition violated — "
+            f"2κθ = {feller_lhs:.4f} ≤ σ_v² = {feller_rhs:.4f}. "
+            f"The variance process v_t may reach zero; floor clipping (v_min=1e-4) will activate."
+        )
+
+
     # Inizializzazione matrici (n_paths * 2 perché uso Antithetic Variates)
     # Genero percorsi speculari per convergere più velocemente
     total_paths = n_paths * 2

@@ -2,7 +2,7 @@ import numpy as np
 from models.black_scholes_pde import bsa_pde_solver
 from data.market_data import get_spx_data
 
-def find_implied_vol(market_price, S0, K, T, r):
+def find_implied_vol(market_price, S0, K, T, r, q=0.0):
     sigma = 0.25 
     S_max_local = max(S0 * 1.7, K * 1.3) #occhio ai moltiplicatori
     
@@ -11,17 +11,19 @@ def find_implied_vol(market_price, S0, K, T, r):
         return np.nan  # Prezzo non invertibile: viola il floor dell'intrinsic value
     
     for i in range(25):
-        s_vals, prices, _, _ = bsa_pde_solver(S_max_local, K, T, r, sigma, 250, 500)
+        s_vals, prices, _, _ = bsa_pde_solver(S_max_local, K, T, r, sigma, 250, 500, q=q)
         current_price = np.interp(S0, s_vals, prices)
         
         diff = current_price - market_price
         if abs(diff) < 1e-4: break
         
         # Vega Numerico con interpolazione
-        vol_bump = 0.01 # 1% bump: standard per vega numerico su PDE
-        s_vals2, prices2, _, _ = bsa_pde_solver(S_max_local, K, T, r, sigma + vol_bump, 250, 500)
-        vega = (np.interp(S0, s_vals2, prices2) - current_price) / vol_bump
-        
+        vol_bump = 0.005  # bump ridotto: con differenza centrata l'errore è quadratico
+        s_up, p_up, _, _ = bsa_pde_solver(S_max_local, K, T, r, sigma + vol_bump, 250, 500)
+        s_dn, p_dn, _, _ = bsa_pde_solver(S_max_local, K, T, r, sigma - vol_bump, 250, 500)
+        vega = (np.interp(S0, s_up, p_up) - np.interp(S0, s_dn, p_dn)) / (2.0 * vol_bump)
+
+
         if abs(vega) < 1e-8: break
         sigma -= np.clip(diff / vega, -0.05, 0.05) 
         
@@ -31,11 +33,20 @@ if __name__ == "__main__":
     print("\nMARKET CALIBRATION\n")
 
     S0, options, T, hist_vol = get_spx_data()
-    r = 0.045 # Fed Funds Rate (riferimento 2024)
+    import yfinance as yf  # già importato in market_data, ma serve qui se standalone
+    try:
+        tbill   = yf.Ticker("^IRX")  # 13-week US T-bill yield (annualizzato, in %)
+        r_fetch = tbill.history(period="5d")['Close'].dropna().iloc[-1] / 100.0
+        r       = round(r_fetch, 4)
+        print(f"Risk-free rate (13W T-bill): {r:.2%}")
+    except Exception:
+        r = 0.045  # fallback statico se fetch fallisce
+        print(f"Risk-free rate (fallback statico): {r:.2%}")
 
     opt = options.iloc[0]
     mid_price = (opt['bid'] + opt['ask']) / 2
-    my_iv = find_implied_vol(mid_price, S0, opt['strike'], T, r)
+    q_spx = 0.013  # dividend yield continuo SPX (~1.3% storico, aggiornare se necessario)
+    my_iv = find_implied_vol(mid_price, S0, opt['strike'], T, r, q=q_spx)
 
     premium = my_iv - hist_vol
     # Soglia ±4%: threshold empirica sul Volatility Risk Premium storico SPX
